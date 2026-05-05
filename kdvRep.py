@@ -40,6 +40,12 @@ def p_d_o(order, x_min, x_max, N):
     D = csr_matrix((data, (rows, cols)), shape=(N, N))
     return D
 
+def resi(wk, un, gamma, dx):
+    return (getEntropy(un + gamma*(wk - un), dx) - getEntropy(un, dx))
+def r_prime(wk, un, gamma, dx):
+    return np.dot(getEntropy_prime(un + gamma*(wk - un), dx),(wk - un))
+    #return (np.dot(getEntropy_prime(un + gamma*(wk - un), dx),(wk - un)) + gamma*resi(wk,un,gamma,dx))/gamma**2
+
 
 
 def kdvsolver(Nx, time, dt, N_opts, gmresOpts, relax):
@@ -73,8 +79,11 @@ def kdvsolver(Nx, time, dt, N_opts, gmresOpts, relax):
     def F(v, vn):
         return v - vn + dt*(v * (D1 @ v) + (D1@(v**2)) + 0.5*(D3 @ v))
     
-    def jac(v):
-        return Ix + dt*(diags(v,0) @ D1 + diags(D1 @ v,0) + 2*(D1 @ diags(v,0)) + 0.5*D3) 
+    #def jac(v):
+        #return Ix + dt*(diags(v,0) @ D1 + diags(D1 @ v,0) + 2*(D1 @ diags(v,0)) + 0.5*D3)
+
+    def jac_matvec(v, y):
+        return y + dt*(v*(D1@y) + (D1@v)*y + 2*(D1@(v*y)) + 0.5*(D3@y)) 
     
     t = np.zeros(M + 1)
 
@@ -86,13 +95,26 @@ def kdvsolver(Nx, time, dt, N_opts, gmresOpts, relax):
         def f(u):
             return F(u,un)
         
+        def jac(v):
+            return LinearOperator((Nx, Nx), matvec=lambda y: jac_matvec(v, y))
+
         wk = un.copy()
 
         wk, resHist = newton(wk, f, jac, N_opts, gmresOpts)
 
         a = 1.0
         if relax:
-            a = (np.linalg.norm(un)**2 - np.dot(wk, un)) / np.linalg.norm(wk - un)**2
+            #a = (np.linalg.norm(un)**2 - np.dot(wk, un)) / np.linalg.norm(wk - un)**2
+            
+            def res(gamma):
+                return resi(wk,un, gamma,dx)
+            def res_prime(gamma):
+                return r_prime(wk,un,gamma,dx)
+            
+            a = newton1D(1.0, res, res_prime)
+
+            #print(f"current gamma : {a} and its shape {a.shape}")
+            
 
         un = 2 * a * wk + (1 - 2 * a) * un
 
@@ -108,6 +130,9 @@ def kdvsolver(Nx, time, dt, N_opts, gmresOpts, relax):
 
 def getEntropy(u, dx):
     return dx*np.linalg.norm(u)**2/2.0
+
+def getEntropy_prime(u, dx):
+    return dx*u
 
 def getError(uex, u, dx):
     return np.sqrt(dx)*np.linalg.norm(u - uex)
@@ -177,11 +202,21 @@ def EisenstatWalker(eta, fnorm_new, fnorm_old, gamma, etamax, stopTol):
     eta = max(etanew, 0.5*stopTol/fnorm_new)
     return eta
 
+def newton1D(x, f, j, tol=1e-12, maxIter=200):
+    for i in range(maxIter):
+        fx = f(x)
+        jx = j(x)
+        print(f"  iter {i}: x={x:.6f}, f={fx:.6e}, j={jx:.6e}")
+        if np.linalg.norm(fx) < tol:
+            break
+        x += -fx / jx
+    return x
+
         
         
 def kdv_main():
-    N = 200
-    time = 1000
+    N = 20
+    time = 10
     dt = 0.05
 
     abstol = 0
