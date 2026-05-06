@@ -105,14 +105,27 @@ def kdvsolver(Nx, time, dt, N_opts, gmresOpts, relax):
         a = 1.0
         if relax:
             #a = (np.linalg.norm(un)**2 - np.dot(wk, un)) / np.linalg.norm(wk - un)**2
-            
+            '''
             def res(gamma):
                 return resi(wk,un, gamma,dx)
             def res_prime(gamma):
                 return r_prime(wk,un,gamma,dx)
-            
-            a = newton1D(1.0, res, res_prime)
+            '''
+            def res(gamma):
+                return r_prime(wk, un, gamma, dx)          # <-- was resi
 
+            def res_prime(gamma):
+                # second derivative: dx * ||wk - un||^2
+                d = wk - un
+                return dx * np.dot(d, d)
+
+            d = wk - un
+            if np.linalg.norm(d) <= 1e-12:
+                a = 1.0
+            else:
+                a = newton1D(1.0, res, res_prime)
+            
+            
             #print(f"current gamma : {a} and its shape {a.shape}")
             
 
@@ -206,7 +219,7 @@ def newton1D(x, f, j, tol=1e-12, maxIter=200):
     for i in range(maxIter):
         fx = f(x)
         jx = j(x)
-        print(f"  iter {i}: x={x:.6f}, f={fx:.6e}, j={jx:.6e}")
+        #print(f"  iter {i}: x={x:.6f}, f={fx:.6e}, j={jx:.6e}")
         if np.linalg.norm(fx) < tol:
             break
         x += -fx / jx
@@ -215,8 +228,8 @@ def newton1D(x, f, j, tol=1e-12, maxIter=200):
         
         
 def kdv_main():
-    N = 20
-    time = 10
+    N = 200
+    time = 100
     dt = 0.05
 
     abstol = 0
@@ -235,10 +248,12 @@ def kdv_main():
 
     plt.plot(t,ent)
     plt.title("Entropy over time")
+    plt.savefig("Entropy_fig_resi")
     plt.show() 
 
     plt.plot(t,err)
     plt.title("Error over time")
+    plt.savefig("Error_fig_resi")
     plt.show()
 
 kdv_main()
