@@ -109,6 +109,7 @@ def brugersMain(relaxN):
     
     
     
+    
     u = initial.copy()
 
     atol = 0.0
@@ -128,9 +129,12 @@ def brugersMain(relaxN):
         def res_prime(gamma):
             return r_prime(Uk, initial, gamma)
         
+        def res_prime_prime(gamma):
+            d = Uk - initial
+            return 2.0 * delta_x * np.dot(d, d)   # second derivative, positive constant
 
         if relaxN:
-            gamma = newton1D(0.9, res, res_prime)
+            gamma = newton1D(0.9, res_prime, res_prime_prime)
             print(f"current gamma : {gamma} and its shape {gamma.shape}")
         else:
             gamma = (np.linalg.norm(initial)**2 - np.dot(Uk, initial)) / np.linalg.norm(Uk - initial)**2
@@ -157,6 +161,7 @@ plt.xlabel("Newton Iteration")
 plt.ylabel("Residual Norm")
 plt.grid(True)
 plt.title("Residual Norm at each Iteration")
+plt.savefig("Newton_Res_norm")
 plt.show()
 plt.plot(iterations, entro)
 plt.ylim(0.95, 0.93)
@@ -165,7 +170,7 @@ plt.xlabel("Newton Iteration")
 plt.ylabel("Entropy")
 plt.grid(True)
 plt.title("Calculated Entropy at each Iteration")
-
+plt.savefig("Newton_seconddiv_Entropy")
 plt.show()
 
 
