@@ -247,12 +247,16 @@ def kdv_main():
     x, t, u, ent, err, resHist = kdvsolver(N, time, dt, NewtonOpts, gmresOpts, relax)
 
     plt.plot(t,ent)
-    plt.title("Entropy over time")
+    plt.title("Kdv Global Entropy at each Timestep")
+    plt.xlabel("Newton Iteration")
+    plt.ylabel("Global Entropy Value")
     plt.savefig("Entropy_fig_resi")
     plt.show() 
 
     plt.plot(t,err)
-    plt.title("Error over time")
+    plt.title("Kdv Residual Error over time")
+    plt.xlabel("Time")
+    plt.ylabel("Kdv Residual Value")
     plt.savefig("Error_fig_resi")
     plt.show()
 
