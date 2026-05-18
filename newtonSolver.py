@@ -137,9 +137,9 @@ def brugersMain(relaxN):
             gamma = newton1D(0.9, res_prime, res_prime_prime)
             print(f"current gamma : {gamma} and its shape {gamma.shape}")
         else:
-            gamma = (np.linalg.norm(initial)**2 - np.dot(Uk, initial)) / np.linalg.norm(Uk - initial)**2
-            print(f"current gamma : {gamma} and its shape {gamma.shape}")
-
+            #gamma = (np.linalg.norm(initial)**2 - np.dot(Uk, initial)) / np.linalg.norm(Uk - initial)**2
+            #print(f"current gamma : {gamma} and its shape {gamma.shape}")
+            gamma = 1.0
         Ug = initial + gamma*(Uk - initial)
 
         entropies[k] = entropy(Ug)
@@ -161,7 +161,7 @@ plt.xlabel("Newton Iteration")
 plt.ylabel("Residual Norm")
 plt.grid(True)
 plt.title("Burger's Equation Residual Norm at each Iteration")
-plt.savefig("Newton_Res_norm")
+plt.savefig("Newton_Res_norm_no")
 plt.show()
 plt.plot(iterations, entro)
 plt.ylim(0.95, 0.93)
@@ -170,7 +170,7 @@ plt.xlabel("Newton Iteration")
 plt.ylabel("Global Entropy Value")
 plt.grid(True)
 plt.title("Burger's Equation Calculated Global Entropy at each Iteration")
-plt.savefig("Newton_seconddiv_Entropy")
+plt.savefig("Newton_seconddiv_Entropy_no")
 plt.show()
 
 

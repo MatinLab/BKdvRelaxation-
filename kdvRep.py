@@ -242,7 +242,7 @@ def kdv_main():
     maxiter_G = 200
     gmresOpts = [etamax, maxiter_G, gamma]
 
-    relax = True
+    relax = False
 
     x, t, u, ent, err, resHist = kdvsolver(N, time, dt, NewtonOpts, gmresOpts, relax)
 
@@ -250,14 +250,15 @@ def kdv_main():
     plt.title("Kdv Global Entropy at each Timestep")
     plt.xlabel("Newton Iteration")
     plt.ylabel("Global Entropy Value")
-    plt.savefig("Entropy_fig_resi")
+    plt.savefig("Entropy_fig_resi_no")
     plt.show() 
 
+    plt.clf()
     plt.plot(t,err)
     plt.title("Kdv Residual Error over time")
     plt.xlabel("Time")
     plt.ylabel("Kdv Residual Value")
-    plt.savefig("Error_fig_resi")
+    plt.savefig("Error_fig_resi_no")
     plt.show()
 
 kdv_main()
